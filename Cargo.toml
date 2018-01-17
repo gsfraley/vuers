@@ -1,0 +1,7 @@
+[package]
+name = "vuers"
+version = "0.1.0"
+authors = ["gsfraley <gsfraley@gmail.com>"]
+
+[dependencies]
+stdweb = "0.3.0"
