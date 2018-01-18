@@ -8,10 +8,7 @@ use vuers::Vue;
 fn main() {
     stdweb::initialize();
 
-    vue! {
-        el: "#app",
-        data: {
-            message: "Hello world!"
-        }
-    };
+    Vue::builder("#app")
+        .with_data(js_obj! { message: "Hello World!" })
+        .finish();
 }
