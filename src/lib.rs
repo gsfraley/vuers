@@ -6,30 +6,33 @@ use std::collections::HashMap;
 use stdweb::{Object, Value};
 
 pub struct VueBuilder<'a> {
-    el: &'a str,
-    data: Option<Object>
+    el: Option<&'a str>,
+    data: Option<HashMap<&'a str, Value>>
 }
 
 impl<'a> VueBuilder<'a> {
-    pub fn new(el: &'a str) -> Self {
+    pub fn new() -> Self {
         VueBuilder {
-            el: el,
+            el: None,
             data: None
         }
     }
 
-    pub fn with_data(mut self, data: Object) -> Self {
+    pub fn with_el(mut self, el: &'a str) -> Self {
+        self.el = Some(el);
+        self
+    }
+
+    pub fn with_data(mut self, data: HashMap<&'a str, Value>) -> Self {
         self.data = Some(data);
         self
     }
 
-    pub fn finish(self) -> Vue {
-        let mut options_map: HashMap<&str, Value> = HashMap::new();
-        options_map.insert("el", self.el.into());
-        options_map.insert("data", Value::Object(self.data.unwrap()));
-
-        let options_obj = Object::from(options_map);
-        Vue::new(options_obj)
+    pub fn build(self) -> Vue {
+        Vue::new(
+            self.el.unwrap(),
+            self.data.unwrap()
+        )
     }
 }
 
@@ -38,27 +41,24 @@ pub struct Vue {
 }
 
 impl Vue {
-    pub fn new(options: Object) -> Self {
+    pub fn new<'a>(el: &'a str, data: HashMap<&'a str, Value>) -> Self {
+        let data_obj: Object = data.into();
+        
         Vue {
             instance: js! {
-                return new Vue( @{options} )
+                return new Vue({
+                    el: @{el},
+                    data: @{data_obj}
+                })
             }.into_object().unwrap()
         }
     }
 
-    pub fn builder<'a>(el: &'a str) -> VueBuilder<'a> {
-        VueBuilder::new(el)
+    pub fn builder<'a>() -> VueBuilder<'a> {
+        VueBuilder::new()
     }
 
     pub fn instance(&self) -> &Object {
         &self.instance
-    }
-}
-
-#[macro_export]
-macro_rules! js_obj {
-    ( $($x:tt)* ) => {
-        js! { return { $($x)* } }
-            .into_object().unwrap()
     }
 }
